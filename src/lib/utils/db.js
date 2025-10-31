@@ -42,19 +42,15 @@ export async function getAll() {
   });
 }
 
-// Create a new notebook (folder structure)
-export async function createNotebook(notebookPath) {
+// Create a new notebook
+export async function createNotebook(path) {
   const db = await openDB();
   const tx = db.transaction(storeName, "readwrite");
   const store = tx.objectStore(storeName);
-
-  // Create a marker file to represent the notebook
-  const marker = {
-    path: `${notebookPath}`,
-  };
+  const nb = { path: `${path}` };
 
   return new Promise((resolve, reject) => {
-    const req = store.put(marker);
+    const req = store.put(nb);
     req.onsuccess = () => {
       tx.oncomplete = () => resolve();
     };
@@ -78,7 +74,7 @@ export async function createNote(notePath, initialContent = null) {
 
 // Delete a file or notebook (and all its contents)
 export async function deleteItem(path) {
-  const db = await openDB(); // your existing openDB
+  const db = await openDB();
   const tx = db.transaction(storeName, "readwrite");
   const store = tx.objectStore(storeName);
 
@@ -102,12 +98,10 @@ export async function renameItem(oldPath, newPath) {
   const db = await openDB();
   const allFiles = await getAll();
 
-  // Find all files that need to be renamed
   const toRename = allFiles.filter(
     (f) => f.path === oldPath || f.path.startsWith(oldPath + "/")
   );
 
-  // Create new entries with updated paths
   const tx = db.transaction(storeName, "readwrite");
   const store = tx.objectStore(storeName);
 

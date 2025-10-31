@@ -1,13 +1,10 @@
 <script>
-  import { createEventDispatcher } from "svelte";
-
   export let show = false;
   export let title = "";
-
-  const dispatch = createEventDispatcher();
+  export let onClose = () => {};
 
   function close() {
-    dispatch("close");
+    onClose();
   }
 
   function handleKeydown(e) {

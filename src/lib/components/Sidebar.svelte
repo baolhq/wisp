@@ -265,7 +265,7 @@
 <Modal
   bind:show={showModal}
   title={modalTitle}
-  on:close={() => (showModal = false)}
+  onClose={() => (showModal = false)}
 >
   <div class="modal-content">
     <label for="item-name">

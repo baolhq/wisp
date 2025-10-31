@@ -60,7 +60,7 @@
       await saveFiles([{ path: file.path, content: output }]);
 
       autosaving.set(false); // ✅ done saving
-    }, 5000);
+    }, 500);
   }
 
   async function setup() {

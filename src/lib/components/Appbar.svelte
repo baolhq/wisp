@@ -2,6 +2,7 @@
   import Icon from "@iconify/svelte";
   import Spinner from "./Spinner.svelte";
   import { sidebarShown, autosaving } from "../utils/store";
+  import Check from "./Check.svelte";
 
   function toggleSidebar() {
     sidebarShown.update((s) => !s);
@@ -21,7 +22,7 @@
       {#if $autosaving}
         <Spinner size={24} color="#22c55e" duration={1.8} />
       {:else}
-        <Icon icon="mynaui:smile-square" width="24" height="24" />
+        <Check color="#22c55e" />
       {/if}
     </button>
   </div>

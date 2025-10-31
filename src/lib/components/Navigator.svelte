@@ -28,10 +28,7 @@
   }
 
   function hasSubFolders(node) {
-    return (
-      node.children &&
-      node.children.some((c) => c.children && c.children.length > 0)
-    );
+    return node.children && node.children.length > 1;
   }
 
   function getMenuItems(node) {
@@ -44,7 +41,7 @@
       {
         text: "New Notebook",
         shortcut: "Ctrl+Shift+N",
-        action: () => onCreateNotebook(),
+        action: () => onCreateNotebook(node),
       },
       {
         text: "Rename",
@@ -58,6 +55,12 @@
         action: () => onDelete(node),
       },
     ];
+  }
+
+  function ascending(a, b) {
+    if (a.path < b.path) return -1;
+    else if (a.path > b.path) return 1;
+    return 0;
   }
 </script>
 
@@ -84,7 +87,7 @@
           </button>
         </div>
       {:else}
-        {#each nodes as node}
+        {#each nodes.sort(ascending) as node}
           {#if isFolder(node)}
             <ContextMenu items={getMenuItems(node)}>
               <div>

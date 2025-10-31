@@ -34,7 +34,7 @@
     const root = [];
 
     function add(path, content) {
-      const parts = path.split("/").filter(Boolean); // remove empty strings
+      const parts = path.split("/").filter(Boolean);
       let current = root;
 
       for (let i = 0; i < parts.length; i++) {
@@ -83,12 +83,36 @@
     onFileSelect(file);
   }
 
-  // Modal handlers
-  function openNewNotebookModal() {
-    modalType = "notebook";
-    modalTitle = "Create New Notebook";
-    inputValue = "";
-    showModal = true;
+  async function createUntitledNotebook(parentFolder = null) {
+    try {
+      let baseName = "Untitled";
+      let suffix = 1;
+
+      // Get existing names inside parent folder
+      let existingNames =
+        parentFolder?.children?.map((n) => n.name) || tree.map((n) => n.name);
+
+      let name = baseName;
+      while (existingNames.includes(name)) {
+        name = `${baseName} ${suffix}`;
+        suffix++;
+      }
+
+      const path = parentFolder ? `${parentFolder.path}/${name}` : name;
+
+      await createNotebook(path);
+      await loadFromDB();
+
+      // Optionally select the new notebook
+      if (parentFolder) {
+        handleFolderSelect(parentFolder);
+      } else {
+        const newFolder = tree.find((n) => n.name === name);
+        if (newFolder) handleFolderSelect(newFolder);
+      }
+    } catch (err) {
+      alert(`Error creating notebook: ${err.message}`);
+    }
   }
 
   function openNewNoteModal(parentFolder = null) {
@@ -175,14 +199,6 @@
     }
   }
 
-  // Expose these functions to Navigator via props
-  export const actions = {
-    createNotebook: openNewNotebookModal,
-    createNote: openNewNoteModal,
-    rename: openRenameModal,
-    delete: handleDelete,
-  };
-
   function startResize(target, e) {
     resizingTarget = target;
     e.preventDefault();
@@ -230,7 +246,7 @@
           nodes={tree}
           onFolderSelect={handleFolderSelect}
           {selectedFolder}
-          onCreateNotebook={openNewNotebookModal}
+          onCreateNotebook={createUntitledNotebook}
           onCreateNote={openNewNoteModal}
           onRename={openRenameModal}
           onDelete={handleDelete}

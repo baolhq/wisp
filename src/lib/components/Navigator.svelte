@@ -5,32 +5,12 @@
   export let nodes = [];
   export let onFolderSelect;
   export let selectedFolder;
-
-  const notebookMenuItems = [
-    {
-      text: "New Note",
-      shortcut: "Ctrl+N",
-      action: () => alert("New Note"),
-    },
-    {
-      text: "New Notebook",
-      shortcut: "Ctrl+Shift+N",
-      action: () => alert("New Notebook"),
-    },
-    {
-      text: "Rename",
-      shortcut: "Ctrl+R",
-      action: () => alert("Rename"),
-    },
-    { text: "Divider" },
-    {
-      text: "Delete",
-      shortcut: "Delete",
-      action: () => alert("Delete"),
-    },
-  ];
-
-  let expanded = new Set();
+  export let onCreateNotebook;
+  export let onCreateNote;
+  export let onRename;
+  export let onDelete;
+  export let expanded = new Set();
+  export let isRoot = true; // Flag to identify root level
 
   function toggle(node) {
     if (!node.children) return;
@@ -44,7 +24,7 @@
   }
 
   function isFolder(node) {
-    return node.children && node.children.length > 0;
+    return node.children != undefined;
   }
 
   function hasSubFolders(node) {
@@ -53,47 +33,236 @@
       node.children.some((c) => c.children && c.children.length > 0)
     );
   }
+
+  function getMenuItems(node) {
+    return [
+      {
+        text: "New Note",
+        shortcut: "Ctrl+N",
+        action: () => onCreateNote(node),
+      },
+      {
+        text: "New Notebook",
+        shortcut: "Ctrl+Shift+N",
+        action: () => onCreateNotebook(),
+      },
+      {
+        text: "Rename",
+        shortcut: "F2",
+        action: () => onRename(node),
+      },
+      { text: "Divider" },
+      {
+        text: "Delete",
+        shortcut: "Delete",
+        action: () => onDelete(node),
+      },
+    ];
+  }
 </script>
 
-{#each nodes as node}
-  {#if isFolder(node)}
-    <ContextMenu items={notebookMenuItems}>
-      <div>
-        <button
-          class="row"
-          class:selected={selectedFolder === node}
-          on:click={() => onFolderSelect && onFolderSelect(node)}
-        >
-          {#if hasSubFolders(node)}
-            <span
-              id="notebook-ico"
-              role="presentation"
-              on:click|stopPropagation={() => toggle(node)}
-            >
-              <Icon icon="mynaui:book" width="24" height="24" />
-            </span>
-          {:else}
-            <Icon icon="mynaui:book" width="24" height="24" />
+{#if isRoot}
+  <div class="navigator-root">
+    <div class="header">
+      <span class="title">Notebooks</span>
+      <button
+        class="add-btn"
+        on:click={onCreateNotebook}
+        title="Create new notebook"
+      >
+        <Icon icon="mynaui:plus" width="20" height="20" />
+      </button>
+    </div>
+
+    <div class="tree-container">
+      {#if nodes.length === 0}
+        <div class="empty-state">
+          <p>No notebooks yet</p>
+          <button class="create-first-btn" on:click={onCreateNotebook}>
+            <Icon icon="mynaui:plus" width="16" height="16" />
+            Create your first notebook
+          </button>
+        </div>
+      {:else}
+        {#each nodes as node}
+          {#if isFolder(node)}
+            <ContextMenu items={getMenuItems(node)}>
+              <div>
+                <button
+                  class="row"
+                  class:selected={selectedFolder === node}
+                  on:click={() => onFolderSelect && onFolderSelect(node)}
+                >
+                  {#if hasSubFolders(node)}
+                    <span
+                      class="expand-icon"
+                      role="presentation"
+                      on:click|stopPropagation={() => toggle(node)}
+                    >
+                      <Icon
+                        icon={expanded.has(node)
+                          ? "mynaui:chevron-down"
+                          : "mynaui:chevron-right"}
+                        width="16"
+                        height="16"
+                      />
+                    </span>
+                  {:else}
+                    <span class="expand-icon-placeholder"></span>
+                  {/if}
+
+                  <Icon icon="mynaui:book" width="20" height="20" />
+                  <span class="node-name">{node.name}</span>
+                </button>
+
+                {#if expanded.has(node) && node.children}
+                  <div class="indent">
+                    <svelte:self
+                      nodes={node.children}
+                      {onFolderSelect}
+                      {selectedFolder}
+                      {onCreateNotebook}
+                      {onCreateNote}
+                      {onRename}
+                      {onDelete}
+                      {expanded}
+                      isRoot={false}
+                    />
+                  </div>
+                {/if}
+              </div>
+            </ContextMenu>
           {/if}
+        {/each}
+      {/if}
+    </div>
+  </div>
+{:else}
+  <!-- Recursive rendering for nested nodes -->
+  {#each nodes as node}
+    {#if isFolder(node)}
+      <ContextMenu items={getMenuItems(node)}>
+        <div>
+          <button
+            class="row"
+            class:selected={selectedFolder === node}
+            on:click={() => onFolderSelect && onFolderSelect(node)}
+          >
+            {#if hasSubFolders(node)}
+              <span
+                class="expand-icon"
+                role="presentation"
+                on:click|stopPropagation={() => toggle(node)}
+              >
+                <Icon
+                  icon={expanded.has(node)
+                    ? "mynaui:chevron-down"
+                    : "mynaui:chevron-right"}
+                  width="16"
+                  height="16"
+                />
+              </span>
+            {:else}
+              <span class="expand-icon-placeholder"></span>
+            {/if}
 
-          {node.name}
-        </button>
+            <Icon icon="mynaui:book" width="20" height="20" />
+            <span class="node-name">{node.name}</span>
+          </button>
 
-        {#if expanded.has(node)}
-          <div class="indent">
-            <svelte:self
-              tree={node.children}
-              {onFolderSelect}
-              {selectedFolder}
-            />
-          </div>
-        {/if}
-      </div>
-    </ContextMenu>
-  {/if}
-{/each}
+          {#if expanded.has(node) && node.children}
+            <div class="indent">
+              <svelte:self
+                nodes={node.children}
+                {onFolderSelect}
+                {selectedFolder}
+                {onCreateNotebook}
+                {onCreateNote}
+                {onRename}
+                {onDelete}
+                {expanded}
+                isRoot={false}
+              />
+            </div>
+          {/if}
+        </div>
+      </ContextMenu>
+    {/if}
+  {/each}
+{/if}
 
 <style>
+  .navigator-root {
+    padding: 8px 0;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    margin-bottom: 8px;
+  }
+
+  .title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .add-btn {
+    all: unset;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    color: #666;
+  }
+
+  .add-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: #2563eb;
+  }
+
+  .tree-container {
+    min-height: 100px;
+  }
+
+  .empty-state {
+    padding: 32px 16px;
+    text-align: center;
+    color: #999;
+  }
+
+  .empty-state p {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+  }
+
+  .create-first-btn {
+    all: unset;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #2563eb;
+    color: white;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .create-first-btn:hover {
+    background: #1d4ed8;
+  }
+
   button {
     all: unset;
     width: 100%;
@@ -106,11 +275,12 @@
     margin: auto;
     margin-top: 4px;
     border-radius: 8px;
-    font-size: 16px;
-    padding: 0.25em;
+    font-size: 14px;
+    padding: 6px 8px;
     display: flex;
     align-items: center;
-    gap: 0.25em;
+    gap: 6px;
+    transition: all 0.2s;
   }
 
   .row:hover {
@@ -126,18 +296,34 @@
     background: rgba(59, 130, 246, 0.2);
   }
 
-  #notebook-ico {
+  .expand-icon {
     display: inline-flex;
     justify-content: center;
+    align-items: center;
     cursor: pointer;
     user-select: none;
+    width: 16px;
+    height: 16px;
+    transition: all 0.2s;
   }
 
-  #notebook-ico:hover {
-    color: rgba(59, 130, 246, 0.7);
+  .expand-icon:hover {
+    color: #2563eb;
+  }
+
+  .expand-icon-placeholder {
+    width: 16px;
+    height: 16px;
+  }
+
+  .node-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .indent {
-    margin-left: 20px;
+    margin-left: 16px;
   }
 </style>

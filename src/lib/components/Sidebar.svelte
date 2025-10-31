@@ -115,12 +115,46 @@
     }
   }
 
-  function openNewNoteModal(parentFolder = null) {
-    modalType = "note";
-    modalTitle = "Create New Note";
-    inputValue = "";
-    currentTarget = parentFolder;
-    showModal = true;
+  async function createUntitledNoteInFolder(parentFolder = null) {
+    try {
+      let baseName = "Untitled";
+      let suffix = 1;
+
+      // Get existing note names in the folder
+      let existingNames =
+        parentFolder?.children
+          ?.filter((c) => !c.children)
+          .map((n) => n.name.replace(/\.md$/, "")) ||
+        tree.filter((n) => !n.children).map((n) => n.name.replace(/\.md$/, ""));
+
+      let name = baseName;
+      while (existingNames.includes(name)) {
+        name = `${baseName} ${suffix}`;
+        suffix++;
+      }
+
+      const path = parentFolder
+        ? `${parentFolder.path}/${name}.md`
+        : `${name}.md`;
+
+      await createNote(path);
+      await loadFromDB();
+
+      // Select the parent folder to show the new note
+      if (parentFolder) {
+        handleFolderSelect(parentFolder);
+      } else {
+        // If no parent, select root
+        files = tree.filter((n) => !n.children);
+      }
+    } catch (err) {
+      alert(`Error creating note: ${err.message}`);
+    }
+  }
+
+  function getParentFolder(notePath) {
+    const parentPath = notePath.split("/").slice(0, -1).join("/");
+    return parentPath ? findFolderByPath(tree, parentPath) : null;
   }
 
   function openRenameModal(item) {
@@ -171,9 +205,6 @@
   }
 
   async function handleDelete(item) {
-    const confirmed = confirm(`Delete "${item.name}"? This cannot be undone.`);
-    if (!confirmed) return;
-
     try {
       await deleteItem(item.path);
 
@@ -185,18 +216,34 @@
         selectedFile = null;
         onFileSelect(null);
       }
-      if (
-        selectedFolder?.path === item.path ||
-        selectedFolder?.path.startsWith(item.path + "/")
-      ) {
-        selectedFolder = null;
-        files = [];
-      }
 
       await loadFromDB();
+
+      // Recalculate files if folder still exists
+      if (selectedFolder) {
+        const folder = findFolderByPath(tree, selectedFolder.path);
+        if (folder) {
+          handleFolderSelect(folder);
+        } else {
+          selectedFolder = null;
+          files = [];
+        }
+      }
     } catch (err) {
       alert(`Error deleting: ${err.message}`);
     }
+  }
+
+  // Utility to find folder in the tree
+  function findFolderByPath(nodes, path) {
+    for (const node of nodes) {
+      if (node.path === path) return node;
+      if (node.children) {
+        const found = findFolderByPath(node.children, path);
+        if (found) return found;
+      }
+    }
+    return null;
   }
 
   function startResize(target, e) {
@@ -247,7 +294,7 @@
           onFolderSelect={handleFolderSelect}
           {selectedFolder}
           onCreateNotebook={createUntitledNotebook}
-          onCreateNote={openNewNoteModal}
+          onCreateNote={(folder) => createUntitledNoteInFolder(folder)}
           onRename={openRenameModal}
           onDelete={handleDelete}
         />
@@ -264,6 +311,12 @@
       <div class="list-panel">
         <List
           items={files}
+          onCreateNote={(file) => {
+            const parentFolder = getParentFolder(file.path);
+            createUntitledNoteInFolder(parentFolder);
+          }}
+          onRename={openRenameModal}
+          onDelete={handleDelete}
           onSelect={handleFileSelectInternal}
           {selectedFile}
         />

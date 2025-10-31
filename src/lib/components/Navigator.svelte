@@ -57,7 +57,7 @@
     ];
   }
 
-  function ascending(a, b) {
+  function ascendingByName(a, b) {
     if (a.path < b.path) return -1;
     else if (a.path > b.path) return 1;
     return 0;
@@ -87,7 +87,7 @@
           </button>
         </div>
       {:else}
-        {#each nodes.sort(ascending) as node}
+        {#each nodes.sort(ascendingByName) as node}
           {#if isFolder(node)}
             <ContextMenu items={getMenuItems(node)}>
               <div>

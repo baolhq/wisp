@@ -1,20 +1,49 @@
 <script>
+  import Icon from "@iconify/svelte";
+  import ContextMenu from "./ContextMenu.svelte";
+
   export let items = [];
   export let onSelect;
   export let selectedFile = null;
+  export let onCreateNote;
+  export let onRename;
+  export let onDelete;
+
+  function getMenuItems(node) {
+    return [
+      {
+        text: "New Note",
+        shortcut: "Ctrl+N",
+        action: () => onCreateNote(node),
+      },
+      {
+        text: "Rename",
+        shortcut: "F2",
+        action: () => onRename(node),
+      },
+      { text: "Divider" },
+      {
+        text: "Delete",
+        shortcut: "Delete",
+        action: () => onDelete(node),
+      },
+    ];
+  }
 </script>
 
 {#if items.length > 0}
   <div class="list">
     {#each items as item}
-      <button
-        class="item"
-        class:selected={selectedFile === item}
-        on:click={() => onSelect?.(item)}
-      >
-        <span class="icon">📄</span>
-        {item.name}
-      </button>
+      <ContextMenu items={getMenuItems(item)}>
+        <button
+          class="item"
+          class:selected={selectedFile === item}
+          on:click={() => onSelect?.(item)}
+        >
+          <Icon icon="mynaui:file" width="16" height="16" />
+          {item.name}
+        </button>
+      </ContextMenu>
     {/each}
   </div>
 {:else}
@@ -52,10 +81,6 @@
 
   .item.selected:hover {
     background: rgba(59, 130, 246, 0.2);
-  }
-
-  .icon {
-    font-size: 16px;
   }
 
   .empty {

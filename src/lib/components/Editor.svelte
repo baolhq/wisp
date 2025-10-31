@@ -6,6 +6,7 @@
   import Quote from "@editorjs/quote";
 
   import { getFile, saveFiles } from "../utils/db.js";
+  import { autosaving } from "../utils/store.js";
 
   export let file;
 
@@ -48,11 +49,18 @@
 
   function triggerSave() {
     clearTimeout(saveTimer);
+
+    // slight debounce so every keystroke doesn't flicker autosave UI
     saveTimer = setTimeout(async () => {
       if (!editor || !file?.path) return;
+
+      autosaving.set(true); // ✅ start autosave indicator
+
       const output = await editor.save();
       await saveFiles([{ path: file.path, content: output }]);
-    }, 500);
+
+      autosaving.set(false); // ✅ done saving
+    }, 5000);
   }
 
   async function setup() {

@@ -2,6 +2,7 @@
   import Navigator from "./Navigator.svelte";
   import List from "./List.svelte";
   import { getAllFiles } from "../utils/db.js";
+  import { sidebarShown } from "../utils/store";
 
   export let selectedFile = null;
   export let onFileSelect = (file) => {}; // parent callback
@@ -90,8 +91,8 @@
 
 <svelte:window on:mousemove={resize} on:mouseup={stopResize} />
 
-<div class="sidebar" style="width: {sidebarWidth}px">
-  <div class="content">
+<div class="sidebar {$sidebarShown ? '' : 'collapsed'}">
+  <div class="content" style="opacity: {$sidebarShown ? 1 : 0}">
     <div class="navigator-container">
       <div class="navigator" style="width: {navigatorWidth}px">
         <Navigator
@@ -133,10 +134,25 @@
     background: #fafafa;
     flex-shrink: 0;
     overflow: hidden;
+    transition: margin 0.25s ease;
+    margin-left: 0;
+  }
+
+  .sidebar.collapsed {
+    width: 640px;
+    margin-left: -640px;
+  }
+
+  .sidebar.collapsed .content {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
   }
 
   .content {
+    opacity: 1;
     height: calc(100% - 24px);
+    transition: opacity 0.2s ease;
     display: flex;
   }
 

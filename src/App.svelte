@@ -1,7 +1,7 @@
 <script>
-  import Sidebar from "./lib/Sidebar.svelte";
-  import Editor from "./lib/Editor.svelte";
-  import Appbar from "./lib/Appbar.svelte";
+  import Sidebar from "./lib/components/Sidebar.svelte";
+  import Editor from "./lib/components/Editor.svelte";
+  import Appbar from "./lib/components/Appbar.svelte";
 
   let selectedFile = null;
 
@@ -32,5 +32,7 @@
   .editor-area {
     flex: 1;
     overflow: hidden;
+    max-width: 800px;
+    margin: 0 auto;
   }
 </style>

@@ -5,7 +5,7 @@
   import { sidebarShown } from "../utils/store";
 
   export let selectedFile = null;
-  export let onFileSelect = (file) => {}; // parent callback
+  export let onFileSelect;
 
   let tree = [];
   let selectedFolder = null;
@@ -96,7 +96,7 @@
     <div class="navigator-container">
       <div class="navigator" style="width: {navigatorWidth}px">
         <Navigator
-          {tree}
+          nodes={tree}
           onFolderSelect={handleFolderSelect}
           {selectedFolder}
         />

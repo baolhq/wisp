@@ -2,7 +2,7 @@
   import Icon from "@iconify/svelte";
   import ContextMenu from "./ContextMenu.svelte";
 
-  export let tree = [];
+  export let nodes = [];
   export let onFolderSelect;
   export let selectedFolder;
 
@@ -55,7 +55,7 @@
   }
 </script>
 
-{#each tree as node}
+{#each nodes as node}
   {#if isFolder(node)}
     <ContextMenu items={notebookMenuItems}>
       <div>

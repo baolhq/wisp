@@ -1,5 +1,6 @@
 <script>
   import { onMount, onDestroy, tick } from "svelte";
+  import { activeContextMenu } from "../utils/store";
 
   export let items = [];
 
@@ -8,50 +9,54 @@
   let y = 0;
   let menu;
 
-  function open(e) {
+  const id =
+    crypto.randomUUID?.() ||
+    `cm_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+
+  const open = async (e) => {
     e.preventDefault();
+    activeContextMenu.set(id);
     x = e.clientX;
     y = e.clientY;
     show = true;
-    tick().then(positionMenu);
-  }
+    await tick().then(positionMenu);
+  };
 
-  function close() {
+  const close = () => {
     show = false;
-  }
+    activeContextMenu.update((v) => (v === id ? null : v));
+  };
 
-  function handleClick(item) {
-    item.action && item.action();
+  const handleClick = (item) => {
+    item.action?.();
     close();
-  }
+  };
 
-  function handleGlobalClick(e) {
+  const handleGlobalClick = (e) => {
     if (!menu || menu.contains(e.target)) return;
     close();
-  }
+  };
 
-  function positionMenu() {
+  const positionMenu = () => {
     const rect = menu.getBoundingClientRect();
     const pad = 8;
-    let left = x;
-    let top = y;
-
-    if (left + rect.width > innerWidth - pad)
-      left = innerWidth - rect.width - pad;
-    if (top + rect.height > innerHeight - pad)
-      top = innerHeight - rect.height - pad;
-
+    let left = Math.min(x, innerWidth - rect.width - pad);
+    let top = Math.min(y, innerHeight - rect.height - pad);
     menu.style.left = left + "px";
     menu.style.top = top + "px";
-  }
+  };
 
+  let unsubscribe;
   onMount(() => {
+    unsubscribe = activeContextMenu.subscribe((v) => {
+      if (v !== id) show = false;
+    });
     window.addEventListener("click", handleGlobalClick);
   });
 
   onDestroy(() => {
-    window.removeEventListener("click", close);
-    window.removeEventListener("contextmenu", close);
+    unsubscribe?.();
+    window.removeEventListener("click", handleGlobalClick);
   });
 </script>
 
@@ -105,7 +110,6 @@
     padding: 6px 8px;
     cursor: pointer;
     border-radius: 8px;
-    transition: all 0.2s ease;
   }
 
   .menu-item:hover {

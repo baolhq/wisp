@@ -105,7 +105,7 @@
             <span
               class="expand-icon"
               role="presentation"
-              on:click|stopPropagation={() => toggle(node)}
+              on:click={() => toggle(node)}
             >
               <Icon
                 icon={expanded.has(node)

@@ -17,12 +17,15 @@
 
   let renameInput;
 
+  $: if (renameInput && editing) {
+    renameInput.focus();
+    renameInput.select();
+  }
+
   async function startRename(node) {
     editing = node;
     tempName = node.name;
     await tick();
-    renameInput?.focus();
-    renameInput?.select();
   }
 
   function cancelRename() {

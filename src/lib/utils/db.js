@@ -114,7 +114,6 @@ export async function renameItem(oldPath, newPath) {
   return tx.complete;
 }
 
-// Check if a path already exists
 export async function pathExists(path) {
   const file = await getFile(path);
   return !!file;

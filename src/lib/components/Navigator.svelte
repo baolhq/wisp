@@ -1,6 +1,7 @@
 <script>
   import Icon from "@iconify/svelte";
   import ContextMenu from "./ContextMenu.svelte";
+  import { tick } from "svelte";
 
   export let nodes = [];
   export let onFolderSelect;
@@ -11,6 +12,33 @@
   export let onDelete;
   export let expanded = new Set();
   export let isRoot = true; // Flag to identify root level
+
+  let renameInput;
+  let editing = null;
+  let tempName = "";
+
+  async function startRename(node) {
+    editing = node;
+    tempName = node.name;
+
+    await tick(); // wait for input to render
+    renameInput && renameInput.focus();
+    renameInput && renameInput.select();
+  }
+
+  function cancelRename() {
+    editing = null;
+  }
+
+  async function commitRename() {
+    if (!tempName.trim() || !editing || tempName === editing.name) {
+      cancelRename();
+      return;
+    }
+
+    await onRename(editing, tempName.trim());
+    cancelRename();
+  }
 
   function toggle(node) {
     if (!node.children) return;
@@ -28,7 +56,7 @@
   }
 
   function hasSubFolders(node) {
-    return node.children && node.children.length > 1;
+    return node.children && node.children.length;
   }
 
   function getMenuItems(node) {
@@ -46,7 +74,7 @@
       {
         text: "Rename",
         shortcut: "F2",
-        action: () => onRename(node),
+        action: () => startRename(node),
       },
       { text: "Divider" },
       {
@@ -70,7 +98,7 @@
       <span class="title">Notebooks</span>
       <button
         class="add-btn"
-        on:click={onCreateNotebook}
+        on:click={() => onCreateNotebook({ path: "" })}
         title="Create new notebook"
       >
         <Icon icon="mynaui:plus" width="20" height="20" />
@@ -115,7 +143,28 @@
                   {/if}
 
                   <Icon icon="mynaui:book" width="20" height="20" />
-                  <span class="node-name">{node.name}</span>
+
+                  {#if node === editing}
+                    <input
+                      class="rename-input"
+                      spellcheck="false"
+                      bind:this={renameInput}
+                      bind:value={tempName}
+                      on:blur={commitRename}
+                      on:keydown={(e) => {
+                        if (e.key === "Enter") commitRename();
+                        if (e.key === "Escape") cancelRename();
+                      }}
+                    />
+                  {:else}
+                    <span
+                      class="node-name"
+                      on:dblclick={() => startRename(node)}
+                      role="presentation"
+                    >
+                      {node.name}
+                    </span>
+                  {/if}
                 </button>
 
                 {#if expanded.has(node) && node.children}
@@ -282,21 +331,16 @@
     padding: 6px 8px;
     display: flex;
     align-items: center;
-    gap: 6px;
-    transition: all 0.2s;
   }
 
   .row:hover {
-    background: rgba(0, 0, 0, 0.06);
+    background: #333;
+    color: #fff;
   }
 
   .row.selected {
-    background: rgba(59, 130, 246, 0.15);
-    color: #2563eb;
-  }
-
-  .row.selected:hover {
-    background: rgba(59, 130, 246, 0.2);
+    background: #111;
+    color: #fff;
   }
 
   .expand-icon {
@@ -305,13 +349,6 @@
     align-items: center;
     cursor: pointer;
     user-select: none;
-    width: 16px;
-    height: 16px;
-    transition: all 0.2s;
-  }
-
-  .expand-icon:hover {
-    color: #2563eb;
   }
 
   .expand-icon-placeholder {
@@ -319,14 +356,32 @@
     height: 16px;
   }
 
-  .node-name {
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
   .indent {
     margin-left: 16px;
+  }
+
+  .node-name {
+    overflow: hidden;
+  }
+
+  .node-name,
+  .rename-input {
+    flex: 1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 4px;
+  }
+
+  .rename-input {
+    font: inherit;
+    color: inherit;
+    background: none;
+    outline: 1px dashed #111;
+    border-radius: 2px;
+    border: none;
+  }
+
+  .rename-input::selection {
+    background: #555;
   }
 </style>

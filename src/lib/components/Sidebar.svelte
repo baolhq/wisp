@@ -1,7 +1,6 @@
 <script>
   import Navigator from "./Navigator.svelte";
   import List from "./List.svelte";
-  import Modal from "./Modal.svelte";
   import {
     getAll,
     createNotebook,
@@ -22,13 +21,6 @@
   let navigatorWidth = 280;
   let listWidth = sidebarWidth - navigatorWidth;
   let resizingTarget = null;
-
-  // Modal state
-  let showModal = false;
-  let modalType = ""; // "notebook", "note", "rename"
-  let modalTitle = "";
-  let inputValue = "";
-  let currentTarget = null; // for rename/delete operations
 
   function buildTree(items) {
     const root = [];
@@ -83,39 +75,29 @@
     onFileSelect(file);
   }
 
-  async function createUntitledNotebook(parentFolder = null) {
-    try {
-      let baseName = "Untitled";
-      let suffix = 1;
+  async function createEmptyNotebook(parent = null) {
+    let baseName = "Untitled";
+    let suffix = 1;
 
-      // Get existing names inside parent folder
-      let existingNames =
-        parentFolder?.children?.map((n) => n.name) || tree.map((n) => n.name);
+    // Get existing names inside parent folder
+    let existingNames =
+      parent?.children?.map((n) => n.name) || tree.map((n) => n.name);
 
-      let name = baseName;
-      while (existingNames.includes(name)) {
-        name = `${baseName} ${suffix}`;
-        suffix++;
-      }
-
-      const path = parentFolder ? `${parentFolder.path}/${name}` : name;
-
-      await createNotebook(path);
-      await loadFromDB();
-
-      // Optionally select the new notebook
-      if (parentFolder) {
-        handleFolderSelect(parentFolder);
-      } else {
-        const newFolder = tree.find((n) => n.name === name);
-        if (newFolder) handleFolderSelect(newFolder);
-      }
-    } catch (err) {
-      alert(`Error creating notebook: ${err.message}`);
+    let name = baseName;
+    while (existingNames.includes(name)) {
+      name = `${baseName} ${suffix}`;
+      suffix++;
     }
+
+    const path = parent.path.length ? `${parent.path}/${name}` : name;
+
+    await createNotebook(path);
+    await loadFromDB();
+
+    handleFolderSelect(parent);
   }
 
-  async function createUntitledNoteInFolder(parentFolder = null) {
+  async function createEmptyNote(parentFolder = null) {
     try {
       let baseName = "Untitled";
       let suffix = 1;
@@ -155,53 +137,6 @@
   function getParentFolder(notePath) {
     const parentPath = notePath.split("/").slice(0, -1).join("/");
     return parentPath ? findFolderByPath(tree, parentPath) : null;
-  }
-
-  function openRenameModal(item) {
-    modalType = "rename";
-    modalTitle = "Rename";
-    inputValue = item.name;
-    currentTarget = item;
-    showModal = true;
-  }
-
-  async function handleModalConfirm() {
-    if (!inputValue.trim()) return;
-
-    try {
-      if (modalType === "notebook") {
-        const path = inputValue.trim();
-        await createNotebook(path);
-      } else if (modalType === "note") {
-        const parentPath = currentTarget?.path || "";
-        const notePath = parentPath
-          ? `${parentPath}/${inputValue.trim()}.md`
-          : `${inputValue.trim()}.md`;
-        await createNote(notePath);
-      } else if (modalType === "rename") {
-        const oldPath = currentTarget.path;
-        const pathParts = oldPath.split("/");
-        pathParts[pathParts.length - 1] = inputValue.trim();
-        const newPath = pathParts.join("/");
-        await renameItem(oldPath, newPath);
-
-        // If the renamed item was selected, update selection
-        if (selectedFile?.path === oldPath) {
-          selectedFile = {
-            ...selectedFile,
-            path: newPath,
-            name: inputValue.trim(),
-          };
-        }
-      }
-
-      await loadFromDB();
-      showModal = false;
-      inputValue = "";
-      currentTarget = null;
-    } catch (err) {
-      alert(`Error: ${err.message}`);
-    }
   }
 
   async function handleDelete(item) {
@@ -271,19 +206,9 @@
   function stopResize() {
     resizingTarget = null;
   }
-
-  function handleKeydown(e) {
-    if (showModal && e.key === "Enter") {
-      handleModalConfirm();
-    }
-  }
 </script>
 
-<svelte:window
-  on:mousemove={resize}
-  on:mouseup={stopResize}
-  on:keydown={handleKeydown}
-/>
+<svelte:window on:mousemove={resize} on:mouseup={stopResize} />
 
 <div class="sidebar {$sidebarShown ? '' : 'collapsed'}">
   <div class="content" style="opacity: {$sidebarShown ? 1 : 0}">
@@ -293,9 +218,26 @@
           nodes={tree}
           onFolderSelect={handleFolderSelect}
           {selectedFolder}
-          onCreateNotebook={createUntitledNotebook}
-          onCreateNote={(folder) => createUntitledNoteInFolder(folder)}
-          onRename={openRenameModal}
+          onCreateNotebook={createEmptyNotebook}
+          onCreateNote={(folder) => createEmptyNote(folder)}
+          onRename={async (node, newName) => {
+            const oldPath = node.path;
+            const parts = oldPath.split("/");
+            parts[parts.length - 1] = newName;
+            const newPath = parts.join("/");
+
+            await renameItem(oldPath, newPath);
+            await loadFromDB();
+
+            if (selectedFile?.path === oldPath) {
+              selectedFile = { ...selectedFile, path: newPath, name: newName };
+            }
+
+            if (selectedFolder) {
+              const folder = findFolderByPath(tree, selectedFolder.path);
+              if (folder) handleFolderSelect(folder);
+            }
+          }}
           onDelete={handleDelete}
         />
       </div>
@@ -313,9 +255,9 @@
           items={files}
           onCreateNote={(file) => {
             const parentFolder = getParentFolder(file.path);
-            createUntitledNoteInFolder(parentFolder);
+            createEmptyNote(parentFolder);
           }}
-          onRename={openRenameModal}
+          onRename={() => {}}
           onDelete={handleDelete}
           onSelect={handleFileSelectInternal}
           {selectedFile}
@@ -330,44 +272,6 @@
     </div>
   </div>
 </div>
-
-<Modal
-  bind:show={showModal}
-  title={modalTitle}
-  onClose={() => (showModal = false)}
->
-  <div class="modal-content">
-    <label for="item-name">
-      {modalType === "notebook"
-        ? "Notebook path:"
-        : modalType === "note"
-          ? "Note name:"
-          : "New name:"}
-    </label>
-    <input
-      id="item-name"
-      type="text"
-      bind:value={inputValue}
-      placeholder={modalType === "notebook"
-        ? "e.g., Work/Projects"
-        : modalType === "note"
-          ? "e.g., Meeting Notes"
-          : ""}
-    />
-    {#if modalType === "note" && currentTarget}
-      <p class="hint">Will be created in: {currentTarget.path}/</p>
-    {/if}
-  </div>
-
-  <div slot="footer">
-    <button class="btn btn-secondary" on:click={() => (showModal = false)}
-      >Cancel</button
-    >
-    <button class="btn btn-primary" on:click={handleModalConfirm}>
-      {modalType === "rename" ? "Rename" : "Create"}
-    </button>
-  </div>
-</Modal>
 
 <style>
   .sidebar {
@@ -425,8 +329,8 @@
 
   .resizer:hover,
   .resizer.resizing {
-    transform: scale(6);
-    background: #aaf;
+    transform: scaleX(4);
+    background: #555;
   }
 
   .resizer::before {
@@ -436,63 +340,5 @@
     right: -4px;
     top: 0;
     bottom: 0;
-  }
-
-  .modal-content {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .modal-content label {
-    font-weight: 600;
-    font-size: 14px;
-  }
-
-  .modal-content input {
-    padding: 10px 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: border-color 0.2s;
-  }
-
-  .modal-content input:focus {
-    outline: none;
-    border-color: #2563eb;
-  }
-
-  .hint {
-    font-size: 12px;
-    color: #666;
-    margin: 0;
-  }
-
-  .btn {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .btn-primary {
-    background: #2563eb;
-    color: white;
-  }
-
-  .btn-primary:hover {
-    background: #1d4ed8;
-  }
-
-  .btn-secondary {
-    background: #f3f4f6;
-    color: #374151;
-  }
-
-  .btn-secondary:hover {
-    background: #e5e7eb;
   }
 </style>

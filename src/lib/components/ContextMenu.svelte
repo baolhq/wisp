@@ -9,9 +9,7 @@
   let y = 0;
   let menu;
 
-  const id =
-    crypto.randomUUID?.() ||
-    `cm_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  const id = crypto.randomUUID();
 
   const open = async (e) => {
     e.preventDefault();

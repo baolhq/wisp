@@ -277,7 +277,7 @@
   .sidebar {
     display: flex;
     flex-direction: column;
-    background: #fafafa;
+    background: var(--panel-1);
     flex-shrink: 0;
     overflow: hidden;
     transition: margin 0.25s ease;
@@ -320,17 +320,18 @@
 
   .resizer {
     width: 1px;
+    background: var(--border);
     cursor: col-resize;
-    background: #eee;
     flex-shrink: 0;
     position: relative;
-    transition: all 0.5s ease;
+    transition: all 0.2s ease;
+    transition-delay: 0.2s;
   }
 
   .resizer:hover,
   .resizer.resizing {
     transform: scaleX(4);
-    background: #555;
+    background: var(--fg-dim-2);
   }
 
   .resizer::before {

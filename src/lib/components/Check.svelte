@@ -1,12 +1,15 @@
 <script>
   import { onMount } from "svelte";
   let {
-    color = "currentColor",
     size = 24,
     strokeWidth = 2,
     isHovered = false,
     class: className = "",
   } = $props();
+
+  let strokeColor = window
+    .getComputedStyle(document.body)
+    .getPropertyValue("--green");
 
   onMount(() => {
     isHovered = true;
@@ -24,7 +27,7 @@
     height={size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={color}
+    stroke={strokeColor}
     stroke-width={strokeWidth}
     stroke-linecap="round"
     stroke-linejoin="round"

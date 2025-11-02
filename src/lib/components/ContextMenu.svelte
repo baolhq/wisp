@@ -92,9 +92,10 @@
 <style>
   .menu {
     position: fixed;
-    background: #eee;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    background: var(--panel-2);
+    color: var(--fg);
+    border: 1px solid var(--fg-dim-2);
+    border-radius: 6px;
     padding: 4px;
     font-size: 14px;
     min-width: 200px;
@@ -111,20 +112,26 @@
   }
 
   .menu-item:hover {
-    background: #ddd;
+    background: var(--fg-dim-2);
+    color: var(--bg);
+  }
+
+  .menu-item:hover kbd.shortcut {
+    color: var(--bg);
   }
 
   kbd.shortcut {
     margin-left: auto;
     display: flex;
     align-items: center;
-    background: #ddd;
+    color: var(--fg);
+    opacity: 0.6;
     padding: 2px 4px;
     border-radius: 4px;
   }
 
   .divider {
     width: calc(100% - 18px);
-    border: 1px dashed #aaa;
+    border: 1px dashed var(--fg-dim-2);
   }
 </style>

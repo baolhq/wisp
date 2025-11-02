@@ -8,6 +8,17 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   box-sizing: border-box;
+
+  --bg: #f1f1f1;
+  --panel-1: #fefefe;
+  --panel-2: #fafafa;
+  --border: #dddddd;
+  --fg: #000000;
+  --fg-dim-1: #111111;
+  --fg-dim-2: #1c1c1c;
+  --fg-dim-3: #888888;
+
+  --green: #22c55e;
 }
 
 body {
@@ -15,5 +26,29 @@ body {
   padding: 0;
 }
 
-@media (prefers-color-scheme: light) {
+[data-theme="dark"] {
+  --bg: #161616;
+  --panel-1: #1b1b1b;
+  --panel-2: #222222;
+  --border: #333333;
+  --fg: #f1f1f1;
+  --fg-dim-1: #eeeeee;
+  --fg-dim-2: #aaaaaa;
+}
+
+.codex-editor {
+  color: var(--fg);
+}
+
+.ce-block {
+  color: inherit;
+}
+
+.ce-block--selected .ce-block__content {
+  background: var(--fg-dim-1);
+  color: var(--bg);
+}
+
+.ce-toolbar__actions > * {
+  color: var(--fg-dim-2);
 }

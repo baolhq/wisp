@@ -1,6 +1,5 @@
 <script>
   export let size = 48;
-  export let color = "#fff";
   export let duration = 2;
 </script>
 
@@ -8,7 +7,6 @@
   class="loader"
   style="
     --size: {size}px;
-    --color: {color};
     --duration: {duration}s;
   "
 ></span>
@@ -28,7 +26,7 @@
     width: var(--size);
     height: var(--size);
     border-radius: 50%;
-    background: var(--color);
+    background: var(--green);
     position: absolute;
     left: 0;
     top: 0;

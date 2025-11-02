@@ -75,7 +75,11 @@
 {#if isRoot}
   <div class="header">
     <span class="title">Notebooks</span>
-    <button class="add-btn" on:click={() => onCreateNotebook({ path: "" })}>
+    <button
+      class="add-btn"
+      title="New Notebook"
+      on:click={() => onCreateNotebook({ path: "" })}
+    >
       <Icon icon="mynaui:plus" width="20" height="20" />
     </button>
   </div>
@@ -194,14 +198,12 @@
     align-items: center;
     justify-content: center;
     padding: 4px;
-    border-radius: 6px;
     transition: all 0.2s;
-    color: #666;
+    color: var(--fg-dim-2);
   }
 
   .add-btn:hover {
-    background: rgba(0, 0, 0, 0.06);
-    color: #2563eb;
+    color: var(--fg);
   }
 
   .empty-state {
@@ -229,16 +231,17 @@
     padding: 6px 8px;
     display: flex;
     align-items: center;
+    color: var(--fg-dim-2);
   }
 
   .row:hover {
-    background: #333;
-    color: #fff;
+    background: var(--border);
+    color: var(--fg-dim-1);
   }
 
   .row.selected {
-    background: #111;
-    color: #fff;
+    background: var(--border);
+    color: var(--fg);
   }
 
   .expand-icon,

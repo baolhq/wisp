@@ -51,10 +51,6 @@
 {/if}
 
 <style>
-  .list {
-    border-left: 1px solid rgba(0, 0, 0, 0.1);
-  }
-
   .item {
     all: unset;
     display: flex;
@@ -68,19 +64,16 @@
     box-sizing: border-box;
     cursor: pointer;
     font-size: 14px;
+    color: var(--fg);
   }
 
   .item:hover {
-    background: rgba(0, 0, 0, 0.06);
+    background: var(--border);
   }
 
   .item.selected {
-    background: rgba(59, 130, 246, 0.15);
-    color: #2563eb;
-  }
-
-  .item.selected:hover {
-    background: rgba(59, 130, 246, 0.2);
+    background: var(--border);
+    color: var(--fg);
   }
 
   .empty {

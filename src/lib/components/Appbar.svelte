@@ -20,9 +20,9 @@
     </button>
     <button class="autosave-btn" title={$autosaving ? "Saving.." : "Autosaved"}>
       {#if $autosaving}
-        <Spinner size={24} color="#22c55e" duration={1.8} />
+        <Spinner size={24} duration={1.8} />
       {:else}
-        <Check color="#22c55e" />
+        <Check />
       {/if}
     </button>
   </div>
@@ -55,13 +55,15 @@
 
 <style>
   .appbar {
-    width: calc(100% - 21px);
+    width: calc(100% - 20px);
     height: 24px;
+    background: var(--bg);
+    color: var(--fg);
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 10px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border);
   }
 
   .left,
@@ -86,38 +88,38 @@
     outline: none;
     border: none;
     background: none;
-    transition: all 0.5s ease;
     border-radius: 8px;
     display: grid;
     place-content: center;
     padding: 4px;
     margin: 0 4px;
+    color: var(--fg);
   }
 
   button:hover,
   .active:hover {
     cursor: pointer;
-    background: #eee;
   }
 
   .back-btn,
   .next-btn {
-    color: #aaa;
+    color: var(--fg-dim-3);
   }
 
   .active {
-    color: inherit;
+    color: var(--fg);
   }
 
   .title-btn {
     width: 50%;
     padding: 4px;
-    border: 1px solid #aaa;
+    border: 1px solid var(--border);
+    color: var(--fg-dim-2);
     border-radius: 8px;
-    transition: all 0.5s ease;
   }
 
   .title-btn:hover {
-    border: 1px solid black;
+    border: 1px solid var(--fg-dim-2);
+    color: var(--fg-dim-1);
   }
 </style>

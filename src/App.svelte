@@ -28,6 +28,7 @@
   .container {
     display: flex;
     height: 100%;
+    background: var(--panel-1);
   }
   .editor-area {
     flex: 1;

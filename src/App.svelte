@@ -10,7 +10,7 @@
   }
 </script>
 
-<main>
+<main data-theme="dark">
   <Appbar />
   <div class="container">
     <Sidebar bind:selectedFile onFileSelect={handleFileSelect} />

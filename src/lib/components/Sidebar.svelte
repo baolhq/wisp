@@ -278,8 +278,6 @@
     display: flex;
     flex-direction: column;
     background: var(--panel-1);
-    flex-shrink: 0;
-    overflow: hidden;
     transition: margin 0.25s ease;
     margin-left: 0;
   }
